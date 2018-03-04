@@ -1,9 +1,12 @@
 package fixedwidth;
 
+import fixedwidth.annotations.Converter;
 import fixedwidth.annotations.Position;
 import fixedwidth.annotations.Record;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
+
+import java.util.function.Function;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -71,5 +74,30 @@ class ScannerTest {
     void missingFields() {
         scan(MissingFields.class,
                 "The class fixedwidth.ScannerTest$MissingFields has no mappable fields");
+    }
+
+    @Record
+    private static class UnsupportedType {
+        @Position(start = 0, end = 1)
+        private Object object;
+    }
+
+    @Test
+    void unsupportedType() {
+        scan(UnsupportedType.class,
+                "The field object on class fixedwidth.ScannerTest$UnsupportedType has an unsupported type. Maybe as the @Converter annotation.");
+    }
+
+    @Record
+    private static class InvalidConverter {
+        @Position(start = 0, end = 1)
+        @Converter(Object.class)
+        private int i;
+    }
+
+    @Test
+    void invalidConverter() {
+        scan(InvalidConverter.class,
+                "The class java.lang.Object is does not implement Function<String, Object>. See field i on class fixedwidth.ScannerTest$InvalidConverter.");
     }
 }

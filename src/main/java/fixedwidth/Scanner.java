@@ -1,11 +1,10 @@
 package fixedwidth;
 
+import fixedwidth.annotations.Converter;
 import fixedwidth.annotations.Position;
 import fixedwidth.annotations.Record;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Arrays;
@@ -46,17 +45,11 @@ class Scanner {
             throw RecordDefinitionException.forMissingRecord(clazz);
         }
 
-        try {
-            Constructor<?> constructor = clazz.getDeclaredConstructor();
-            constructor.setAccessible(true);
-            constructor.newInstance();
-        } catch (NoSuchMethodException | InstantiationException | InvocationTargetException | IllegalAccessException e) {
-            throw RecordDefinitionException.newInstanceProblem(clazz, e);
-        }
+        ReflectUtil.createInstance(clazz, e -> RecordDefinitionException.newInstanceProblem(clazz, e));
 
         Field[] fields = clazz.getDeclaredFields();
 
-        if(fields.length == 0) {
+        if (fields.length == 0) {
             throw RecordDefinitionException.missingFields(clazz);
         }
 
@@ -75,8 +68,26 @@ class Scanner {
             throw RecordDefinitionException.invalidPosition(field);
         }
 
-        Function<String, Object> converter = SUPPORTED_TYPES.get(field.getType());
+        Converter converter = field.getAnnotation(Converter.class);
+        if (converter != null) {
+            return useConverter(field, position, converter);
+        }
 
-        return new Mapping(field, position.start(), position.end(), converter);
+        Function<String, Object> function = SUPPORTED_TYPES.get(field.getType());
+        if (function == null) {
+            throw RecordDefinitionException.unsupportedType(field);
+        }
+
+        return new Mapping(field, position.start(), position.end(), function);
+    }
+
+    private Mapping useConverter(Field field, Position position, Converter converter) {
+        Object instance = ReflectUtil.createInstance(converter.value(), e -> new RecordDefinitionException("Unable to create converter", e));
+        try {
+            Function<String, Object> function = (Function<String, Object>) instance;
+            return new Mapping(field, position.start(), position.end(), function);
+        } catch (ClassCastException e) {
+            throw RecordDefinitionException.invalidConverter(converter.value(), field);
+        }
     }
 }

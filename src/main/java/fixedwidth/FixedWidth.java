@@ -1,7 +1,5 @@
 package fixedwidth;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
@@ -19,7 +17,7 @@ public class FixedWidth<T> {
         maxMapping = mappings
                 .stream()
                 .max(Comparator.comparingInt(Mapping::getEnd))
-                .get();
+                .get(); // Safe get. Always one or more mappings
     }
 
     public T parse(String line) throws ParseException {
@@ -29,20 +27,22 @@ public class FixedWidth<T> {
                     maxMapping.getField().getDeclaringClass().getName()
             ));
         }
-        try {
-            Constructor<T> constructor = clazz.getDeclaredConstructor();
-            constructor.setAccessible(true);
-            T instance = constructor.newInstance();
+        T instance = ReflectUtil.createInstance(clazz, e -> new ParseException(
+                String.format(
+                        "Unable to create instance on class %s",
+                        clazz.getName()
+                ), e));
 
+        try {
             for (Mapping mapping : mappings) {
                 String substring = line.substring(mapping.getStart(), mapping.getEnd());
                 mapping.getField().set(instance, mapping.getConverter().apply(substring));
             }
-
-            return instance;
-        } catch (NoSuchMethodException | InvocationTargetException | InstantiationException | IllegalAccessException e) {
-            throw new ParseException("Unable to create instance", e);
+        } catch (IllegalAccessException e) {
+            throw new ParseException("Unable to set value", e);
         }
+
+        return instance;
     }
 
     public static <T> FixedWidth<T> forClass(Class<T> clazz) throws RecordDefinitionException {

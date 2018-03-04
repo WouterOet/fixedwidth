@@ -12,7 +12,7 @@ public class RecordDefinitionException extends RuntimeException {
         super(message, cause);
     }
 
-    public static RecordDefinitionException forMissingRecord(Class<?> clazz) {
+    static RecordDefinitionException forMissingRecord(Class<?> clazz) {
         return new RecordDefinitionException(
                 String.format(
                         "The class %s is missing the fixedwidth.annotions.Record annotation",
@@ -21,7 +21,7 @@ public class RecordDefinitionException extends RuntimeException {
         );
     }
 
-    public static RecordDefinitionException forMissingPosition(Field field) {
+    static RecordDefinitionException forMissingPosition(Field field) {
         return new RecordDefinitionException(
                 String.format(
                         "The field %s on class %s is missing the annotation fixedwidth.annotations.Position",
@@ -31,7 +31,7 @@ public class RecordDefinitionException extends RuntimeException {
         );
     }
 
-    public static RecordDefinitionException newInstanceProblem(Class<?> clazz, ReflectiveOperationException e) {
+    static RecordDefinitionException newInstanceProblem(Class<?> clazz, ReflectiveOperationException e) {
         return new RecordDefinitionException(
                 String.format(
                         "Unable to create a new instance of class %s",
@@ -40,7 +40,7 @@ public class RecordDefinitionException extends RuntimeException {
         );
     }
 
-    public static RecordDefinitionException invalidPosition(Field field) {
+    static RecordDefinitionException invalidPosition(Field field) {
         return new RecordDefinitionException(
                 String.format(
                         "The field %s on class %s has an invalid fixedwidth.annotations.Position combination. The end needs to be after the start",
@@ -50,11 +50,32 @@ public class RecordDefinitionException extends RuntimeException {
         );
     }
 
-    public static RecordDefinitionException missingFields(Class<?> clazz) {
+    static RecordDefinitionException missingFields(Class<?> clazz) {
         return new RecordDefinitionException(
                 String.format(
                         "The class %s has no mappable fields",
                         clazz.getName()
+                )
+        );
+    }
+
+    static RecordDefinitionException unsupportedType(Field field) {
+        return new RecordDefinitionException(
+                String.format(
+                        "The field %s on class %s has an unsupported type. Maybe as the @Converter annotation.",
+                        field.getName(),
+                        field.getDeclaringClass().getName()
+                )
+        );
+    }
+
+    static RecordDefinitionException invalidConverter(Class<?> value, Field field) {
+        return new RecordDefinitionException(
+                String.format(
+                        "The class %s is does not implement Function<String, Object>. See field %s on class %s.",
+                        value.getName(),
+                        field.getName(),
+                        field.getDeclaringClass().getName()
                 )
         );
     }
