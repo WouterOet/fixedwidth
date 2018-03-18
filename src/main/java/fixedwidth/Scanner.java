@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
 
 class Scanner {
 
-    private static final Map<Class<?>, Function<Field, Function<String, Object>>> SUPPORTED_TYPES = new HashMap<>();
+    private static final Map<Function<Class<?>, Boolean>, Function<Field, Function<String, Object>>> SUPPORTED_TYPES = new HashMap<>();
 
     private static Function<Field, Function<String, Object>> withPatternContent(BiFunction<String, DateTimeFormatter, Object> consumer, DateTimeFormatter formatter) {
         return field -> {
@@ -34,21 +34,30 @@ class Scanner {
 
     static {
         Function<Function<String, Object>, Function<Field, Function<String, Object>>> withoutContext = i -> f -> i;
+        Function<Class<?>, Function<Class<?>, Boolean>> fixedClass = fixed -> actual -> fixed == actual;
 
-        SUPPORTED_TYPES.put(Long.class, withoutContext.apply(Long::parseLong));
-        SUPPORTED_TYPES.put(long.class, withoutContext.apply(Long::parseLong));
-        SUPPORTED_TYPES.put(Integer.class, withoutContext.apply(Integer::parseInt));
-        SUPPORTED_TYPES.put(int.class, withoutContext.apply(Integer::parseInt));
-        SUPPORTED_TYPES.put(Short.class, withoutContext.apply(Short::parseShort));
-        SUPPORTED_TYPES.put(short.class, withoutContext.apply(Short::parseShort));
-        SUPPORTED_TYPES.put(String.class, withoutContext.apply(s -> s));
-        SUPPORTED_TYPES.put(Double.class, withoutContext.apply(Double::parseDouble));
-        SUPPORTED_TYPES.put(double.class, withoutContext.apply(Double::parseDouble));
-        SUPPORTED_TYPES.put(Float.class, withoutContext.apply(Float::parseFloat));
-        SUPPORTED_TYPES.put(float.class, withoutContext.apply(Float::parseFloat));
+        SUPPORTED_TYPES.put(fixedClass.apply(Long.class), withoutContext.apply(Long::parseLong));
+        SUPPORTED_TYPES.put(fixedClass.apply(long.class), withoutContext.apply(Long::parseLong));
+        SUPPORTED_TYPES.put(fixedClass.apply(Integer.class), withoutContext.apply(Integer::parseInt));
+        SUPPORTED_TYPES.put(fixedClass.apply(int.class), withoutContext.apply(Integer::parseInt));
+        SUPPORTED_TYPES.put(fixedClass.apply(Short.class), withoutContext.apply(Short::parseShort));
+        SUPPORTED_TYPES.put(fixedClass.apply(short.class), withoutContext.apply(Short::parseShort));
+        SUPPORTED_TYPES.put(fixedClass.apply(String.class), withoutContext.apply(s -> s));
+        SUPPORTED_TYPES.put(fixedClass.apply(Double.class), withoutContext.apply(Double::parseDouble));
+        SUPPORTED_TYPES.put(fixedClass.apply(double.class), withoutContext.apply(Double::parseDouble));
+        SUPPORTED_TYPES.put(fixedClass.apply(Float.class), withoutContext.apply(Float::parseFloat));
+        SUPPORTED_TYPES.put(fixedClass.apply(float.class), withoutContext.apply(Float::parseFloat));
+        SUPPORTED_TYPES.put(fixedClass.apply(Boolean.class), withoutContext.apply(Boolean::parseBoolean));
+        SUPPORTED_TYPES.put(fixedClass.apply(boolean.class), withoutContext.apply(Boolean::parseBoolean));
+        SUPPORTED_TYPES.put(fixedClass.apply(byte.class), withoutContext.apply(Byte::parseByte));
+        SUPPORTED_TYPES.put(fixedClass.apply(Byte.class), withoutContext.apply(Byte::parseByte));
+        SUPPORTED_TYPES.put(fixedClass.apply(char.class), withoutContext.apply(s -> s.charAt(0)));
+        SUPPORTED_TYPES.put(fixedClass.apply(Character.class), withoutContext.apply(s -> s.charAt(0)));
 
-        SUPPORTED_TYPES.put(LocalDateTime.class, withPatternContent(LocalDateTime::parse, DateTimeFormatter.ISO_LOCAL_DATE_TIME));
-        SUPPORTED_TYPES.put(LocalDate.class, withPatternContent(LocalDate::parse, DateTimeFormatter.ISO_LOCAL_DATE));
+        SUPPORTED_TYPES.put(fixedClass.apply(LocalDateTime.class), withPatternContent(LocalDateTime::parse, DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+        SUPPORTED_TYPES.put(fixedClass.apply(LocalDate.class), withPatternContent(LocalDate::parse, DateTimeFormatter.ISO_LOCAL_DATE));
+
+        SUPPORTED_TYPES.put(Class::isEnum, field -> value -> Enum.valueOf((Class) field.getType(), value));
 
     }
 
@@ -85,10 +94,12 @@ class Scanner {
             return useConverter(field, position, converter);
         }
 
-        Function<Field, Function<String, Object>> contentFunction = SUPPORTED_TYPES.get(field.getType());
-        if (contentFunction == null) {
-            throw RecordDefinitionException.unsupportedType(field);
-        }
+        Function<Field, Function<String, Object>> contentFunction = SUPPORTED_TYPES.entrySet()
+                .stream()
+                .filter(entry -> entry.getKey().apply(field.getType()))
+                .map(Map.Entry::getValue)
+                .findFirst()
+                .orElseThrow(() -> RecordDefinitionException.unsupportedType(field));
 
         return new Mapping(field, position.start(), position.end(), contentFunction.apply(field));
     }

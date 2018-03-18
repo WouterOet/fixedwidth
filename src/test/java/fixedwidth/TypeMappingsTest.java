@@ -6,8 +6,8 @@ import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Objects;
 
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class TypeMappingsTest {
@@ -16,24 +16,33 @@ class TypeMappingsTest {
     void test() {
         FixedWidth<TestClass> fixedWidth = FixedWidth.forClass(TestClass.class);
 
-        TestClass actual = fixedWidth.parse("11 13 14 123jk 1988-11-26T20:08:01 3.1415 3.1415");
-        TestClass expected = new TestClass(
-                11,
-                11,
-                13L,
-                13L,
-                (short) 14,
-                (short) 14,
-                "123jk",
-                LocalDate.parse("1988-11-26"),
-                LocalDateTime.parse("1988-11-26T20:08:01"),
-                3.1415,
-                3.1415,
-                3.1415f,
-                3.1415f
-        );
+        TestClass actual = fixedWidth.parse("11 13 14 123jk 1988-11-26T20:08:01 3.1415 3.1415 A true 125 Q");
 
-        assertEquals(expected, actual);
+        assertAll(
+                () -> assertEquals(11, actual.someInt),
+                () -> assertEquals(Integer.valueOf(11), actual.someInteger),
+                () -> assertEquals(13, actual.someLong),
+                () -> assertEquals(Long.valueOf(13L), actual.someLongBoxed),
+                () -> assertEquals((short) 14, actual.someShort),
+                () -> assertEquals(Short.valueOf((short) 14), actual.someShortBoxed),
+                () -> assertEquals("123jk", actual.someString),
+                () -> assertEquals(LocalDate.parse("1988-11-26"), actual.someLocalDate),
+                () -> assertEquals(LocalDateTime.parse("1988-11-26T20:08:01"), actual.someLocalDateTime),
+                () -> assertEquals(3.1415, actual.someDouble),
+                () -> assertEquals(Double.valueOf(3.1415), actual.someDoubleBoxed),
+                () -> assertEquals(3.1415f, actual.someFloat),
+                () -> assertEquals(Float.valueOf(3.1415f), actual.someFloatBoxed),
+                () -> assertEquals(TestEnum.A, actual.someEnum),
+                () -> assertEquals(true, actual.someBoolean),
+                () -> assertEquals(Boolean.TRUE, actual.someBooleanBoxed),
+                () -> assertEquals((byte) 125, actual.someByte),
+                () -> assertEquals(Byte.valueOf((byte) 125), actual.someByteBoxed)
+
+        );
+    }
+
+    enum TestEnum {
+        A, B, C
     }
 
     @Record
@@ -65,52 +74,21 @@ class TypeMappingsTest {
         private float someFloat;
         @Position(start = 42, end = 48)
         private Float someFloatBoxed;
+        @Position(start = 49, end = 50)
+        private TestEnum someEnum;
+        @Position(start = 51, end = 55)
+        private boolean someBoolean;
+        @Position(start = 51, end = 55)
+        private Boolean someBooleanBoxed;
+        @Position(start = 56, end = 59)
+        private byte someByte;
+        @Position(start = 56, end = 59)
+        private Byte someByteBoxed;
+        @Position(start = 60, end = 61)
+        private char someChar;
+        @Position(start = 60, end = 61)
+        private Character someCharBoxed;
 
-
-        public TestClass() {
-        }
-
-        public TestClass(int someInt, Integer someInteger, long someLong, Long someLongBoxed, short someShort, Short someShortBoxed, String someString, LocalDate someLocalDate, LocalDateTime someLocalDateTime, double someDouble, Double someDoubleBoxed, float someFloat, Float someFloatBoxed) {
-            this.someInt = someInt;
-            this.someInteger = someInteger;
-            this.someLong = someLong;
-            this.someLongBoxed = someLongBoxed;
-            this.someShort = someShort;
-            this.someShortBoxed = someShortBoxed;
-            this.someString = someString;
-            this.someLocalDate = someLocalDate;
-            this.someLocalDateTime = someLocalDateTime;
-            this.someDouble = someDouble;
-            this.someDoubleBoxed = someDoubleBoxed;
-            this.someFloat = someFloat;
-            this.someFloatBoxed = someFloatBoxed;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-            TestClass testClass = (TestClass) o;
-            return someInt == testClass.someInt &&
-                    someLong == testClass.someLong &&
-                    someShort == testClass.someShort &&
-                    Double.compare(testClass.someDouble, someDouble) == 0 &&
-                    Float.compare(testClass.someFloat, someFloat) == 0 &&
-                    Objects.equals(someInteger, testClass.someInteger) &&
-                    Objects.equals(someLongBoxed, testClass.someLongBoxed) &&
-                    Objects.equals(someShortBoxed, testClass.someShortBoxed) &&
-                    Objects.equals(someString, testClass.someString) &&
-                    Objects.equals(someLocalDate, testClass.someLocalDate) &&
-                    Objects.equals(someLocalDateTime, testClass.someLocalDateTime) &&
-                    Objects.equals(someDoubleBoxed, testClass.someDoubleBoxed) &&
-                    Objects.equals(someFloatBoxed, testClass.someFloatBoxed);
-        }
-
-        @Override
-        public int hashCode() {
-
-            return Objects.hash(someInt, someInteger, someLong, someLongBoxed, someShort, someShortBoxed, someString, someLocalDate, someLocalDateTime, someDouble, someDoubleBoxed, someFloat, someFloatBoxed);
-        }
     }
 }
 

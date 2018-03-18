@@ -33,14 +33,17 @@ public class FixedWidth<T> {
                         clazz.getName()
                 ), e));
 
-        try {
-            for (Mapping mapping : mappings) {
+        for (Mapping mapping : mappings) {
+            try {
                 String substring = line.substring(mapping.getStart(), mapping.getEnd());
                 mapping.getField().set(instance, mapping.getConverter().apply(substring));
+            } catch (Exception e) {
+                throw new ParseException(String.format(
+                        "Unable to parse line '%s', an exception occurred for field %s", line, mapping.getField().getName()
+                ), e);
             }
-        } catch (IllegalAccessException e) {
-            throw new ParseException("Unable to set value", e);
         }
+
 
         return instance;
     }
