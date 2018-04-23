@@ -2,13 +2,14 @@ package fixedwidth;
 
 import fixedwidth.annotations.Position;
 import fixedwidth.annotations.Record;
+import fixedwidth.annotations.Temporal;
+import fixedwidth.annotations.WithPattern;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 class TypeMappingsTest {
 
@@ -33,11 +34,10 @@ class TypeMappingsTest {
                 () -> assertEquals(3.1415f, actual.someFloat),
                 () -> assertEquals(Float.valueOf(3.1415f), actual.someFloatBoxed),
                 () -> assertEquals(TestEnum.A, actual.someEnum),
-                () -> assertEquals(true, actual.someBoolean),
+                () -> assertTrue(actual.someBoolean),
                 () -> assertEquals(Boolean.TRUE, actual.someBooleanBoxed),
                 () -> assertEquals((byte) 125, actual.someByte),
                 () -> assertEquals(Byte.valueOf((byte) 125), actual.someByteBoxed)
-
         );
     }
 
@@ -45,7 +45,7 @@ class TypeMappingsTest {
         A, B, C
     }
 
-    @Record
+    @Record(allowUnmapped = true, allowOverlapping = true)
     private static class TestClass {
 
         @Position(start = 0, end = 2)
@@ -63,9 +63,17 @@ class TypeMappingsTest {
         @Position(start = 9, end = 14)
         private String someString;
         @Position(start = 15, end = 25)
+        @WithPattern(pattern = "yyyy-MM-dd", temporal = Temporal.DATE)
         private LocalDate someLocalDate;
+//        @Position(start = 15, end = 25)
+//        @WithPattern(pattern = "yyyy-MM-dd", temporal = WithPattern.Temporal.DATE)
+//        private Date someDate;
         @Position(start = 15, end = 34)
+        @WithPattern(pattern = "yyyy-MM-dd'T'HH:mm:ss", temporal = Temporal.DATE_TIME)
         private LocalDateTime someLocalDateTime;
+//        @Position(start = 15, end = 34)
+//        @WithPattern(pattern = "yyyy-MM-dd'T'HH:mm:ss", temporal = WithPattern.Temporal.DATE_TIME)
+//        private Date someDateTime;
         @Position(start = 35, end = 41)
         private double someDouble;
         @Position(start = 35, end = 41)

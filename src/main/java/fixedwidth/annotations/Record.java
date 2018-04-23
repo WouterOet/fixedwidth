@@ -12,4 +12,8 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 public @interface Record {
+
+    boolean allowOverlapping() default false;
+
+    boolean allowUnmapped() default false;
 }

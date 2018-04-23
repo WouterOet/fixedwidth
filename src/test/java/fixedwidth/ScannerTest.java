@@ -6,14 +6,11 @@ import fixedwidth.annotations.Record;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
 
-import java.util.function.Function;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class ScannerTest {
 
-    // TODO verify messages
     private void scan(Class<?> clazz, String message) {
         Executable r = () -> new Scanner(clazz).scan();
         RecordDefinitionException exception = assertThrows(RecordDefinitionException.class, r);
@@ -85,7 +82,7 @@ class ScannerTest {
     @Test
     void unsupportedType() {
         scan(UnsupportedType.class,
-                "The field object on class fixedwidth.ScannerTest$UnsupportedType has an unsupported type. Maybe as the @Converter annotation.");
+                "The field object on class fixedwidth.ScannerTest$UnsupportedType has an unsupported type. Maybe use the @Converter annotation.");
     }
 
     @Record

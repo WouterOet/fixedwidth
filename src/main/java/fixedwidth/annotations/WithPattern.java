@@ -9,6 +9,8 @@ import java.lang.annotation.Target;
 @Target(ElementType.FIELD)
 public @interface WithPattern {
 
-    String value();
+    String pattern();
+
+    Temporal temporal();
 
 }
