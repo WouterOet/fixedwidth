@@ -1,5 +1,7 @@
 package fixedwidth;
 
+import java.time.Duration;
+import java.time.temporal.Temporal;
 import java.util.BitSet;
 import java.util.Objects;
 import java.util.function.Supplier;
@@ -101,7 +103,7 @@ public class FixedWidth<T> {
                     clazz
             ));
         }
-        T instance = ReflectUtil.createInstance(clazz, e -> new ParseException(
+        T instance = Util.createInstance(clazz, e -> new ParseException(
                 String.format(
                         "Unable to create instance on class %s",
                         clazz.getName()

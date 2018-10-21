@@ -28,7 +28,7 @@ class Scanner {
         }
 
         // Check if an instance can be created
-        ReflectUtil.createInstance(clazz, e -> RecordDefinitionException.newInstanceProblem(clazz, e));
+        Util.createInstance(clazz, e -> RecordDefinitionException.newInstanceProblem(clazz, e));
 
         List<Mapping> mappings = getMappings();
         List<ParsedFiller> fillers = getFillers();
@@ -76,7 +76,7 @@ class Scanner {
             return useConverter(field, position, converter);
         }
 
-        Function<String, Object> contentFunction = types.getSupported().entrySet()
+        var contentFunction = types.getSupported().entrySet()
                 .stream()
                 .filter(entry -> entry.getKey().apply(field.getType()))
                 .map(Map.Entry::getValue)
@@ -96,7 +96,7 @@ class Scanner {
     }
 
     private Mapping useConverter(Field field, Position position, Converter converter) {
-        Object instance = ReflectUtil.createInstance(converter.value(), e -> new RecordDefinitionException("Unable to create converter", e));
+        Object instance = Util.createInstance(converter.value(), e -> new RecordDefinitionException("Unable to create converter", e));
         try {
             Function<String, Object> function = (Function<String, Object>) instance;
             return new Mapping(field, position.start(), position.end(), function);

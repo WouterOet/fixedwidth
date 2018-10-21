@@ -8,9 +8,19 @@ import fixedwidth.bytebuddy.MyByteBuddy;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
 
+import java.io.BufferedReader;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
+import java.util.List;
 import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
+import static java.lang.Math.pow;
+import static java.lang.Math.sqrt;
+import static java.util.stream.Collectors.toList;
 import static org.junit.jupiter.api.Assertions.*;
 
 class FixedWidthTest {
@@ -283,7 +293,12 @@ class FixedWidthTest {
         assertThrowsRDE(clazz);
     }
 
-
-
+    @Test
+    void name() {
+        List<String> list = new BufferedReader(null)
+                .lines()
+                .filter(((Predicate<String>)String::isEmpty).negate())
+                .collect(toList());
+    }
 
 }
